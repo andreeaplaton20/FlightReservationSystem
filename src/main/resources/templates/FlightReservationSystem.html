@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>Flight Reservation System</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/static/css/FlightReservationSystem.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+</head>
+<body>
+<nav>
+    <div class="header">
+        <div class="logo">LecFlight</div>
+        <div class="name">Flight Reservation System</div>
+    </div>
+    <div class="menu">
+            <span class="menu-items-dropdown">Login
+                <div class="submenu">
+                    <a class="aItems" th:href="@{'#create'}">Create Account</a>
+                    <a class="aItems" th:href="@{'#myAccount'}">My Account</a>
+                </div>
+            </span>
+        <span class="menu-items"><a class="aItems" th:href="@{'#contacts'}">Contacts</a></span>
+    </div>
+</nav>
+<main>
+    <div class="content">
+        <h1 th:text="${message}">Let's fly together</h1>
+        <p>Choose your dream destination and enjoy a comfortable flight with us</p>
+        <a th:href="@{'#book'}" class="cta-button">Book Here Now</a>
+    </div>
+
+    <div id="destinations" class="popul-destinations">
+        <h2>Popular Destinations</h2>
+        <p>Choose from a variety of popular destinations perfect for a nice time spending.</p>
+        <p>Discover new places and cultures with our curated travel experiences.</p>
+        <a th:href="@{'#destinations'}" class="cta-button">Explore Workouts</a>
+    </div>
+
+    <div id="revw" class="reviews">
+        <h2>Wanna know what others think about us?</h2>
+        <div class="swiper slider-wrapper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"The best flight experience I've ever had!"</p>
+                        <p>- John Doe</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"Amazing service and friendly staff!"</p>
+                        <p>- Jane Smith</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"I love the comfort and convenience of LecFlight!"</p>
+                        <p>- Mark Johnson</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"Highly recommend for anyone looking to travel!"</p>
+                        <p>- Emily Davis</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"LecFlight made my trip unforgettable!"</p>
+                        <p>- Sarah Wilson</p>
+                    </div>
+                </div>
+                <div class="swiper-slide">
+                    <div class="review-card">
+                        <p>"I can't wait to book my next flight with LecFlight!"</p>
+                        <p>- David Lee</p>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-slide-button swiper-button-prev"></div>
+            <div class="swiper-slide-button swiper-button-next"></div>
+        </div>
+    </div>
+
+    <div id="contacts" class="contacts">
+        <h2>Contacts</h2>
+        <p>If you have any questions or need assistance, feel free to reach out!</p>
+        <p>Contact us through the form below or connect with us on social media.</p>
+        <form action="#" method="post">
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" placeholder="Your name"><br>
+            <label for="email">Email:</label><br>
+            <input type="email" id="email" name="email" placeholder="Your email"><br>
+            <input type="submit" value="Submit">
+        </form>
+        <p>Follow us on social media for the latest updates and tips!</p>
+        <div class="social-links">
+            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+        </div>
+    </div>
+</main>
+<footer>
+    <div class="footer-content">
+        <p>&copy; 2025 LecFlight. All rights reserved.</p>
+        <p>Privacy Policy | Terms of Service</p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script th:src="@{/js/FlightReservationSystem.js}"></script>
+</body>
+</html>
