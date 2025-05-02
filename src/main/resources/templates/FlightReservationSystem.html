@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <title>Flight Reservation System</title>
-    <link rel="stylesheet" type="text/css" th:href="@{/static/css/FlightReservationSystem.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/FlightReservationSystem.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
 <body>
@@ -16,8 +16,9 @@
     <div class="menu">
             <span class="menu-items-dropdown">Login
                 <div class="submenu">
-                    <a class="aItems" th:href="@{'#create'}">Create Account</a>
-                    <a class="aItems" th:href="@{'#myAccount'}">My Account</a>
+                    <a class="aItems" th:href="@{/register}">Create Account</a>
+                    <a class="aItems" th:href="@{/custom-login}">My Account</a>
+                    <a class="aItems" th:href="@{/flights}">Book Flight</a>
                 </div>
             </span>
         <span class="menu-items"><a class="aItems" th:href="@{'#contacts'}">Contacts</a></span>
@@ -34,7 +35,7 @@
         <h2>Popular Destinations</h2>
         <p>Choose from a variety of popular destinations perfect for a nice time spending.</p>
         <p>Discover new places and cultures with our curated travel experiences.</p>
-        <a th:href="@{'#destinations'}" class="cta-button">Explore Workouts</a>
+        <a th:href="@{'#destinations'}" class="cta-button">Explore New Destinations</a>
     </div>
 
     <div id="revw" class="reviews">

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Book a flight - LecFlight</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/flights.css}">
+</head>
+<body>
+    <h2>Welcome, <span th:text="${username}">User</span>! Here are the available flights:</h2>
+    <div class="flight-list">
+        <div class="flight-content" th:each="flight : ${flights}">
+            <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
+            <p>From: <span th:text="${flight.departureAirport.city}"></span> |
+                To: <span th:text="${flight.arrivalAirport.city}"></span></p>
+            <p>Departure: <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+            <p>Seats: <span th:text="${flight.availableSeats}"></span></p>
+            <p>Price: <span th:text="${flight.price}"></span> RON</p>
+
+            <form th:action="@{/api/flights/buy-ticket}" method="post">
+                <input type="hidden" name="flightId" th:value="${flight.id}" />
+                <input type="number" name="ticketCount" min="1" placeholder="Number of Tickets" required />
+                <input class="button" type="submit" value="Buy Ticket" />
+            </form>
+        </div>
+    </div>
+    <form th:action="@{/}" method="get" style="margin-top: 2rem;">
+        <button type="submit" class="button">Back to Home</button>
+    </form>
+</body>
+</html>

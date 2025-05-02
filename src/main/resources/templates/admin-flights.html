@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Manage Flights</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/admin-flights.css}">
+</head>
+<body>
+<h2>Welcome Admin, <span th:text="${username}">Admin</span>!</h2>
+
+<h3>Existing Flights</h3>
+<div class="flight-list">
+    <div class="flight-content" th:each="flight : ${flights}">
+        <div>
+            <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
+            <p>From: <span th:text="${flight.departureAirport.city}"></span> |
+                To: <span th:text="${flight.arrivalAirport.city}"></span></p>
+            <p>Departure: <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+            <p>Seats: <span th:text="${flight.availableSeats}"></span></p>
+            <p>Price: <span th:text="${flight.price}"></span> RON</p>
+            <div>
+                <button class="button"
+                        th:attr="onclick=|javascript:openEditModal(
+                        [[${flight.id}]],
+                        [[${flight.flightNumber}]],
+                        '${flight.departureAirport.city}',
+                        '${flight.arrivalAirport.city}',
+                        '${flight.departureTime}',
+                        '${flight.arrivalTime}',
+                        [[${flight.availableSeats}]],
+                        [[${flight.price}]],
+                        '${flight.airplane.airline.name}',
+                        '${flight.airplane.airline.iataCode}',
+                        '${flight.airplane.airline.country}',
+                        '${flight.airplane.model}',
+                        [[${flight.airplane.totalSeats}]],
+                        '${flight.departureAirport.name}',
+                        '${flight.departureAirport.iataCode}',
+                        '${flight.departureAirport.country}',
+                        '${flight.arrivalAirport.name}',
+                        '${flight.arrivalAirport.iataCode}',
+                        '${flight.arrivalAirport.country}'
+                    )|">Edit Flight</button>
+                <form th:action="@{/api/flights/delete}" method="post">
+                    <input type="hidden" name="flightId" th:value="${flight.id}" />
+                    <input class="button" type="submit" value="Delete Flight" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="add-button">
+    <button class="button" th:attr="onclick=|javascript:openAddModal()|">Add Flight</button>
+</div>
+<div id="addModal" class="add-form">
+    <h3>Add New Flight</h3>
+    <form th:action="@{/api/flights/add}" method="post">
+        <label for="FlightNumber">Flight Number:</label>
+        <input type="text" name="flightNumber" id="FlightNumber" placeholder="Flight Number" required/><br/>
+        <label for="DepartureTime">Departure Time:</label>
+        <input type="datetime-local" name="departureTime" id="DepartureTime" required/><br/>
+        <label for="ArrivalTime">Arrival Time:</label>
+        <input type="datetime-local" name="arrivalTime" id="ArrivalTime" required/><br/>
+        <label for="AvailableSeats">Available Seats:</label>
+        <input type="number" name="availableSeats" id="AvailableSeats" placeholder="Seats" min="1" required/><br/>
+        <label for="Price">Price:</label>
+        <input type="number" step="0.01" name="price" id="Price" placeholder="Price" min="0" required/><br/>
+
+        <label for="AirlineName">Airline Name:</label>
+        <input type="text" name="airlineName" id="AirlineName" placeholder="Airline Name" required/><br/>
+        <label for="AirlineCode">Airline Code:</label>
+        <input type="text" name="airlineCode" id="AirlineCode" placeholder="Airline Code" required/><br/>
+        <label for="AirlineCountry">Airline Country:</label>
+        <input type="text" name="airlineCountry" id="AirlineCountry" placeholder="Airline Country" required/><br/>
+
+        <label for="AirplaneModel">Airplane Model:</label>
+        <input type="text" name="airplaneModel" id="AirplaneModel" placeholder="Airplane Model" required/><br/>
+        <label for="AirplaneCapacity">Airplane Capacity:</label>
+        <input type="number" name="airplaneCapacity" id="AirplaneCapacity" placeholder="Airplane Capacity" min="1" required/><br/>
+
+        <label for="DepartureAirportName">Departure Airport Name:</label>
+        <input type="text" name="departureAirportName" id="DepartureAirportName" placeholder="Departure Airport Name" required/><br/>
+        <label for="DepartureAirportCode">Departure Airport Code:</label>
+        <input type="text" name="departureAirportCode" id="DepartureAirportCode" placeholder="Departure Airport Code" required/><br/>
+        <label for="DepartureCity">Departure City:</label>
+        <input type="text" name="departureCity" id="DepartureCity" placeholder="Departure City" required/><br/>
+        <label for="DepartureCountry">Departure Country:</label>
+        <input type="text" name="departureCountry" id="DepartureCountry" placeholder="Departure Country" required/><br/>
+
+        <label for="ArrivalAirportName">Arrival Airport Name:</label>
+        <input type="text" name="arrivalAirportName" id="ArrivalAirportName" placeholder="Arrival Airport Name" required/><br/>
+        <label for="ArrivalAirportCode">Arrival Airport Code:</label>
+        <input type="text" name="arrivalAirportCode" id="ArrivalAirportCode" placeholder="Arrival Airport Code" required/><br/>
+        <label for="ArrivalCity">Arrival City:</label>
+        <input type="text" name="arrivalCity" id="ArrivalCity" placeholder="Arrival City" required/><br/>
+        <label for="ArrivalCountry">Arrival Country:</label>
+        <input type="text" name="arrivalCountry" id="ArrivalCountry" placeholder="Arrival Country" required/><br/>
+        <input class="button" type="submit" value="Add Flight" />
+    </form>
+    <button class="button" onclick="closeAddModal()">Cancel</button>
+</div>
+
+<div id="editModal" class="edit-form">
+    <h2>Edit Flight</h2>
+    <form id="editForm" th:action="@{/api/flights/update}" method="post">
+        <input type="hidden" name="id" id="editId" />
+        <label for="editFlightNumber">Flight Number:</label>
+        <input type="text" name="flightNumber" id="editFlightNumber" placeholder="Flight Number" required/><br/>
+        <label for="editDepartureTime">Departure Time:</label>
+        <input type="datetime-local" name="departureTime" id="editDepartureTime" required/><br/>
+        <label for="editArrivalTime">Arrival Time:</label>
+        <input type="datetime-local" name="arrivalTime" id="editArrivalTime" required/><br/>
+        <label for="editAvailableSeats">Available Seats:</label>
+        <input type="number" name="availableSeats" id="editAvailableSeats" placeholder="Seats" min="1" required/><br/>
+        <label for="editPrice">Price:</label>
+        <input type="number" step="0.01" name="price" id="editPrice" placeholder="Price" min="0" required/><br/>
+
+        <label for="editAirlineName">Airline Name:</label>
+        <input type="text" name="airlineName" id="editAirlineName" placeholder="Airline Name" required/><br/>
+        <label for="editAirlineCode">Airline Code:</label>
+        <input type="text" name="airlineCode" id="editAirlineCode" placeholder="Airline Code" required/><br/>
+        <label for="editAirlineCountry">Airline Country:</label>
+        <input type="text" name="airlineCountry" id="editAirlineCountry" placeholder="Airline Country" required/><br/>
+
+        <label for="editAirplaneModel">Airplane Model:</label>
+        <input type="text" name="airplaneModel" id="editAirplaneModel" placeholder="Airplane Model" required/><br/>
+        <label for="editAirplaneCapacity">Airplane Capacity:</label>
+        <input type="number" name="airplaneCapacity" id="editAirplaneCapacity" placeholder="Airplane Capacity" min="1" required/><br/>
+
+        <label for="editDepartureAirportName">Departure Airport Name:</label>
+        <input type="text" name="departureAirportName" id="editDepartureAirportName" placeholder="Departure Airport Name" required/><br/>
+        <label for="editDepartureAirportCode">Departure Airport Code:</label>
+        <input type="text" name="departureAirportCode" id="editDepartureAirportCode" placeholder="Departure Airport Code" required/><br/>
+        <label for="editDepartureCity">Departure City:</label>
+        <input type="text" name="departureCity" id="editDepartureCity" placeholder="Departure City" required/><br/>
+        <label for="editDepartureCountry">Departure Country:</label>
+        <input type="text" name="departureCountry" id="editDepartureCountry" placeholder="Departure Country" required/><br/>
+
+        <label for="editArrivalAirportName">Arrival Airport Name:</label>
+        <input type="text" name="arrivalAirportName" id="editArrivalAirportName" placeholder="Arrival Airport Name" required/><br/>
+        <label for="editArrivalAirportCode">Arrival Airport Code:</label>
+        <input type="text" name="arrivalAirportCode" id="editArrivalAirportCode" placeholder="Arrival Airport Code" required/><br/>
+        <label for="editArrivalCity">Arrival City:</label>
+        <input type="text" name="arrivalCity" id="editArrivalCity" placeholder="Arrival City" required/><br/>
+        <label for="editArrivalCountry">Arrival Country:</label>
+        <input type="text" name="arrivalCountry" id="editArrivalCountry" placeholder="Arrival Country" required/><br/>
+
+        <input class="button" type="submit" value="Save Changes" />
+    </form>
+    <button class="button" onclick="closeEditModal()">Cancel</button>
+</div>
+
+<div id="overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.5); z-index:500;" onclick="closeEditModal()"></div>
+
+<a th:href="@{/}">Back to Home</a>
+<script th:src="@{/js/FlightReservationSystem.js}"></script>
+</body>
+</html>

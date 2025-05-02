@@ -1,4 +1,4 @@
-package org.example.flightreservationsystem;
+package org.example.flightreservationsystem.model;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,7 +1,7 @@
 package org.example.flightreservationsystem.service;
 
 import lombok.Setter;
-import org.example.flightreservationsystem.User;
+import org.example.flightreservationsystem.model.User;
 import org.example.flightreservationsystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +27,12 @@ public class UserService {
     public boolean authenticate(String username, String password) {
         return userRepository.findByUsername(username)
                 .map(user -> PasswordEncoderUtil.matches(password, user.getPassword()))
+                .orElse(false);
+    }
+
+    public boolean isAdmin(String username) {
+        return userRepository.findByUsername(username)
+                .map(user -> user.getRole().equals("admin"))
                 .orElse(false);
     }
 }

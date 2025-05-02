@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - LecFlight</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/custom-login.css}">
+</head>
+<body>
+    <div class="content">
+        <h2>Enter your account</h2>
+        <div th:if="${error}" style="color: red;">
+            <p th:text="${error}"></p>
+        </div>
+        <form th:action="@{/api/users/custom-login}" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" placeholder="Username" required />
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Password" required />
+            <input type="submit" value="Login" />
+        </form>
+        <a th:href="@{/register}">Don't have an account? Register now!</a>
+    </div>
+</body>
+</html>

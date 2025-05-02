@@ -1,0 +1,71 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    color: #ec2828;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    max-width: 500px;
+    margin: 2rem 0;
+}
+
+label {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    color: #ec2828;
+}
+
+input[type="text"], input[type="password"], input[type="email"] {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+input[type="submit"] {
+    background-color: #ec2828;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+    background-color: #d41212;
+}
+
+a {
+    color: #ec2828;
+    text-decoration: none;
+    font-weight: 500;
+}

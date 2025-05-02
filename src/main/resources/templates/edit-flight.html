@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Flight</title>
+</head>
+<body>
+<h2>Edit Flight</h2>
+<form th:action="@{/api/flights/update}" th:object="${flight}" method="post">
+    <input type="hidden" th:field="*{id}" />
+    <input type="text" th:field="*{flightNumber}" placeholder="Flight Number" required/><br/>
+    <input type="datetime-local" th:field="*{departureTime}" required/><br/>
+    <input type="number" th:field="*{availableSeats}" placeholder="Seats" min="1" required/><br/>
+    <input type="number" step="0.01" th:field="*{price}" placeholder="Price" min="0" required/><br/>
+    <!-- Aici poți adăuga și câmpuri pentru Departure și Arrival dacă vrei -->
+    <input type="submit" value="Update Flight" />
+</form>
+<a th:href="@{/api/flights/admin-page}">Back to Admin Page</a>
+</body>
+</html>
