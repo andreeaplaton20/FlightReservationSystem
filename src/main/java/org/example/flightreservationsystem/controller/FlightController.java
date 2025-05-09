@@ -6,11 +6,13 @@ import org.example.flightreservationsystem.dto.AddFlightRequest;
 import org.example.flightreservationsystem.dto.BuyTicketRequest;
 import org.example.flightreservationsystem.dto.UpdateFlightRequest;
 import org.example.flightreservationsystem.model.Flight;
+import org.example.flightreservationsystem.model.Seat;
 import org.example.flightreservationsystem.service.FlightService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Controller
@@ -62,14 +64,57 @@ public class FlightController {
 
     @PostMapping("/buy-ticket")
     public String buyTicket(@ModelAttribute BuyTicketRequest request, Model model) {
-        boolean success = flightService.buyTicket(request.getFlightId(), request.getTicketCount());
+        boolean manualSelection = request.getSelectedSeatNumbers() != null && !request.getSelectedSeatNumbers().isEmpty();
+        boolean success = flightService.buyTicket(
+                request.getFlightId(),
+                request.getTicketCount(),
+                request.getSelectedSeatNumbers()
+        );
 
         if (success) {
+            BigDecimal extraCost = manualSelection
+                    ? new BigDecimal("25.00").multiply(BigDecimal.valueOf(request.getTicketCount()))
+                    : BigDecimal.ZERO;
+
+            model.addAttribute("extraCost", extraCost);
+            model.addAttribute("manualSelection", manualSelection);
             return "ticket-success";
         } else {
             model.addAttribute("errorMessage", "Failed to buy ticket. Please check flight availability.");
             return "ticket-error";
         }
+    }
+
+    @GetMapping("/buy-ticket-auto")
+    public String buyTicketAuto(@RequestParam Long flightId, @RequestParam int ticketCount, Model model) {
+        boolean success = flightService.buyTicket(flightId, ticketCount, null);
+
+        if (success) {
+            Flight flight = flightService.getFlightById(flightId);
+            String assignedSeat = flightService.getAssignedSeats(flightId, ticketCount);
+
+            model.addAttribute("flight", flight);
+            model.addAttribute("assignedSeat", assignedSeat);
+            model.addAttribute("ticketCount", ticketCount);
+            model.addAttribute("totalPrice", flight.getPrice().multiply(BigDecimal.valueOf(ticketCount)));
+
+            return "ticket-success";
+        } else {
+            model.addAttribute("errorMessage", "Failed to buy ticket. Please check flight availability.");
+            return "ticket-error";
+        }
+    }
+
+
+    @GetMapping("/select-seats")
+    public String selectSeats(@RequestParam Long flightId, @RequestParam int count, Model model) {
+        Flight flight = flightService.getFlightById(flightId);
+        List<Seat> allSeats = flightService.getAllSeatsForFlight(flightId);
+
+        model.addAttribute("flight", flight);
+        model.addAttribute("seats", allSeats);
+        model.addAttribute("ticketCount", count);
+        return "select-seats";
     }
 
     @PostMapping("/delete")

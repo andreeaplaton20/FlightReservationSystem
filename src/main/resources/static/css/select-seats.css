@@ -1,0 +1,144 @@
+h2 {
+    color: #ec2828;
+    text-align: center;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.content-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 16px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1;
+    position: relative;
+}
+
+.content-container:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+}
+
+.background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    filter: blur(8px) brightness(0.5);
+    z-index: -1;
+}
+
+.no-seats {
+    color: #751616;
+    font-weight: bold;
+    text-align: center;
+}
+
+.seats-grid {
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+    justify-content: center;
+}
+
+.column-group {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.seat-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.seat {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background-image: url('static/images/seat.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #000;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #fff;
+    cursor: pointer;
+    border: none;
+}
+
+.seat input[type="checkbox"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    margin: 0;
+}
+
+.seat input[type="checkbox"]:checked + span {
+    background-color: rgba(40, 167, 69, 0.5);
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.seat.reserved {
+    filter: grayscale(100%);
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.seat span {
+    z-index: 1;
+    pointer-events: none;
+}
+
+.aisle {
+    width: 60px;
+}
+
+.fee {
+    font-size: 0.9rem;
+    color: #9c4b4b;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.button {
+    background-color: #ec2828;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 20px;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    display: block;
+    margin: 20px auto 0 auto;
+}
+
+.button:hover {
+    background-color: #d11d1d;
+}

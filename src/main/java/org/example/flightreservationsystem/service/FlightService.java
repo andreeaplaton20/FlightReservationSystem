@@ -7,11 +7,9 @@ import org.example.flightreservationsystem.model.*;
 import org.example.flightreservationsystem.repository.*;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +18,7 @@ public class FlightService {
     private final AirlineRepository airlineRepository;
     private final AirportRepository airportRepository;
     private final AirplaneRepository airplaneRepository;
+    private final SeatRepository seatRepository;
 
     public List<Flight> flightList() {
         return flightRepository.findAll();
@@ -77,18 +76,62 @@ public class FlightService {
                                     request.getPrice());
         flight.setAirplane(airplane);
         flightRepository.save(flight);
+
+        int totalSeats = airplane.getTotalSeats();
+        int rows = (int) Math.ceil((double) totalSeats / 6);
+        generateSeatsForFlight(flight, rows);
     }
 
-    public boolean buyTicket(Long flightId, int ticketCount) {
-        return flightRepository.findById(flightId).map(flight -> {
-            if (flight.getAvailableSeats() >= ticketCount) {
-                flight.setAvailableSeats(flight.getAvailableSeats() - ticketCount);
-                flightRepository.save(flight);
-                return true;
-            } else {
-                return false;
-            }
-        }).orElse(false);
+    public boolean buyTicket(Long flightId, int ticketCount, List<String> selectedSeatNumbers) {
+        Optional<Flight> optionalFlight = flightRepository.findById(flightId);
+        if (optionalFlight.isEmpty()) return false;
+        Flight flight = optionalFlight.get();
+        if (flight.getAvailableSeats() < ticketCount) {
+            return false;
+        }
+
+        List<Seat> seatsToReserve;
+
+        if (selectedSeatNumbers != null && !selectedSeatNumbers.isEmpty()) {
+            seatsToReserve = seatRepository.findByFlightAndSeatNumberIn(flight, selectedSeatNumbers);
+            if (seatsToReserve.size() != ticketCount) return false;
+        } else {
+            seatsToReserve = seatRepository.findTopNByFlightAndReservedFalse(flight, ticketCount);
+        }
+
+        for (Seat seat : seatsToReserve) {
+            seat.setReserved(true);
+        }
+        seatRepository.saveAll(seatsToReserve);
+
+        flight.setAvailableSeats(flight.getAvailableSeats() - ticketCount);
+        flightRepository.save(flight);
+
+        return true;
+    }
+
+    public List<Seat> getAvailableSeatsForFlight(Long flightId) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        return seatRepository.findByFlightAndReservedFalse(flight);
+    }
+
+    public String getAssignedSeats(Long flightId, int ticketCount) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        List<Seat> availableSeats = seatRepository.findByFlightAndReservedFalse(flight);
+        if (availableSeats.size() < ticketCount) {
+            return null;
+        }
+        StringBuilder assignedSeats = new StringBuilder();
+        for (int i = 0; i < ticketCount; i++) {
+            assignedSeats.append(availableSeats.get(i).getSeatNumber()).append(" ");
+        }
+        return assignedSeats.toString().trim();
+    }
+
+    public List<Seat> getAllSeatsForFlight(Long flightId) {
+        return seatRepository.findByFlightId(flightId);
     }
 
     public void deleteFlightById(Long flightId) {
@@ -139,6 +182,24 @@ public class FlightService {
         flight.setArrivalAirport(arrivalAirport);
 
         flightRepository.save(flight);
+
+        int totalSeats = airplane.getTotalSeats();
+        int rows = (int) Math.ceil((double) totalSeats / 6);
+        generateSeatsForFlight(flight, rows);
     }
 
+    public void generateSeatsForFlight(Flight flight, int rows) {
+        String[] seatLetters = {"A", "B", "C", "D", "E", "F"};
+        List<Seat> seats = new ArrayList<>();
+        for (int row = 1; row <= rows; row++) {
+            for (String letter : seatLetters) {
+                Seat seat = new Seat();
+                seat.setSeatNumber(row + letter);
+                seat.setReserved(false);
+                seat.setFlight(flight);
+                seats.add(seat);
+            }
+        }
+        seatRepository.saveAll(seats);
+    }
 }

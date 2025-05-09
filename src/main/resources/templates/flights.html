@@ -19,12 +19,26 @@
             <form th:action="@{/api/flights/buy-ticket}" method="post">
                 <input type="hidden" name="flightId" th:value="${flight.id}" />
                 <input type="number" name="ticketCount" min="1" placeholder="Number of Tickets" required />
-                <input class="button" type="submit" value="Buy Ticket" />
+                <button type="button" class="button" onclick="openModal(this)">Buy Ticket</button>
             </form>
         </div>
     </div>
+
     <form th:action="@{/}" method="get" style="margin-top: 2rem;">
         <button type="submit" class="button">Back to Home</button>
     </form>
+
+    <div id="seatModal" class="modal">
+        <div class="modal-content">
+            <h3>Select Seat Option</h3>
+            <p>You can choose your seats for an extra fee, or let the system assign them automatically.</p>
+            <div class="seat-buttons">
+                <button id="manualSelectBtn" class="seat-button">Choose Seats (+25 RON per seat)</button>
+                <button id="autoSelectBtn" class="seat-button">Auto-assign Seats</button>
+            </div>
+            <button class="button" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+    <script th:src="@{/js/BuyModal.js}"></script>
 </body>
 </html>

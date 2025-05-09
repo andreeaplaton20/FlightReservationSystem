@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -33,6 +34,9 @@ public class Flight {
 
     private Integer availableSeats;
     private BigDecimal price;
+
+    @OneToMany(mappedBy = "flight", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Seat> seats;
 
     public Flight(int flightNumber, Airport departureAirport, Airport arrivalAirport, LocalDateTime departureTime, LocalDateTime arrivalTime, int availableSeats, BigDecimal price) {
         this.flightNumber = flightNumber;

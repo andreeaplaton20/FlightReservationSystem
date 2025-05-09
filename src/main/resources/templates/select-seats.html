@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/select-seats.css}">
+    <title>Select Seats</title>
+</head>
+<body>
+<div class="background-image" th:style="|background-image: url('@{/images/planeInterior.jpeg}')|"></div>
+<div class="content-container">
+    <h2>Select your seats</h2>
+    <form th:action="@{/api/flights/buy-ticket}" method="post">
+        <input type="hidden" name="flightId" th:value="${flight.id}" />
+        <input type="hidden" name="ticketCount" th:value="${ticketCount}" />
+
+        <p class="no-seats" th:if="${#lists.isEmpty(seats)}">No seats available!</p>
+
+        <div class="seats-grid">
+            <div class="column-group">
+                <div class="seat-column" th:each="letter : ${T(java.util.List).of('A','B','C')}">
+                    <label th:each="seat : ${seats}"
+                           th:if="${seat.seatNumber.endsWith(letter)}"
+                           th:classappend="${seat.reserved} ? ' reserved' : ''"
+                           th:style="|background-image: url('@{/images/seat.png}')|"
+                           class="seat">
+                        <input type="checkbox" name="selectedSeatNumbers"
+                               th:value="${seat.seatNumber}"
+                               th:disabled="${seat.reserved}" />
+                        <span th:text="${seat.seatNumber}">Seat</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="aisle"></div>
+
+            <div class="column-group">
+                <div class="seat-column" th:each="letter : ${T(java.util.List).of('D','E','F')}">
+                    <label th:each="seat : ${seats}"
+                           th:if="${seat.seatNumber.endsWith(letter)}"
+                           th:classappend="${seat.reserved} ? ' reserved' : ''"
+                           th:style="|background-image: url('@{/images/seat.png}')|"
+                           class="seat">
+                        <input type="checkbox" name="selectedSeatNumbers"
+                               th:value="${seat.seatNumber}"
+                               th:disabled="${seat.reserved}" />
+                        <span th:text="${seat.seatNumber}">Seat</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <p class="fee">Extra fee: 25 RON x <span th:text="${ticketCount}"></span></p>
+        <button class="button" type="submit">Confirm Seats & Pay</button>
+    </form>
+</div>
+</body>
+</html>
