@@ -16,6 +16,7 @@
             <p>From: <span th:text="${flight.departureAirport.city}"></span> |
                 To: <span th:text="${flight.arrivalAirport.city}"></span></p>
             <p>Departure: <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+            <p>Arrival: <span th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
             <p>Seats: <span th:text="${flight.availableSeats}"></span></p>
             <p>Price: <span th:text="${flight.price}"></span> RON</p>
             <div>

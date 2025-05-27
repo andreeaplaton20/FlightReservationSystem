@@ -31,6 +31,9 @@ public class UserController {
                               HttpSession session) {
         if (userService.authenticate(username, password)) {
             session.setAttribute("username", username);
+            userRepository.findByUsername(username).ifPresent(user -> {
+                session.setAttribute("email", user.getEmail());
+            });
             if (!userService.isAdmin(username)) {
                 return "redirect:/api/flights/page";
             } else {
@@ -51,7 +54,6 @@ public class UserController {
     public String registerSubmit(@RequestParam String username,
                                  @RequestParam String email,
                                  @RequestParam String password,
-                                 @RequestParam String role,
                                  Model model) {
         if (userRepository.findByUsername(username).isPresent()) {
             model.addAttribute("error", "Username already exists");

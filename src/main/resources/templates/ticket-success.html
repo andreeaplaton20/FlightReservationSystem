@@ -1,11 +1,75 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Ticket Purchased</title>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title>Payment Simulation</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/ticket-success.css}" />
 </head>
 <body>
-<h1>Success!</h1>
-<p>Your ticket(s) were purchased successfully.</p>
-<a th:href="@{/flights}">Back to Flights</a>
+
+<div class="payment-container">
+    <div class="payment-card">
+        <h1 class="success-title">Success!</h1>
+        <p class="message">Your ticket was reserved successfully.</p>
+
+        <div class="ticket-info-payment-wrapper">
+            <div class="ticket-summary">
+                <h2>Ticket Summary</h2>
+                <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
+                <p><strong>From:</strong> <span id="departureCity" th:text="${flight.departureAirport.city}"></span> |
+                    <strong>To:</strong> <span id="destinationCity" th:text="${flight.arrivalAirport.city}"></span></p>
+                <p><strong>Departure:</strong> <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p><strong>Arrival:</strong> <span th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p><strong>Assigned Seat:</strong> <span th:text="${assignedSeat}"></span></p>
+                <p><strong>Price:</strong> <span th:text="${totalPrice}"></span> RON</p>
+            </div>
+
+            <form id="paymentForm" class="payment-form">
+                <h3>Payment</h3>
+                <label>
+                    Card Number:
+                    <input type="text" name="cardNumber" placeholder="1234 5678 9012 3456" required>
+                </label>
+                <label>
+                    First Name:
+                    <input type="text" name="cardholderName" placeholder="Popescu" required>
+                </label>
+                <label>
+                    Last Name:
+                    <input type="text" name="cardholderLastName" placeholder="Lilix" required>
+                </label>
+                <label>
+                    Expiry Date:
+                    <input type="text" name="expiry" placeholder="MM/YY" required>
+                </label>
+                <label>
+                    CVV:
+                    <input type="text" name="cvv" placeholder="123" required>
+                </label>
+
+                <input type="hidden" name="flightNumber" th:value="${flight.flightNumber}">
+                <input type="hidden" name="totalPrice" th:value="${totalPrice}">
+
+                <button type="submit" class="pay-button">Pay</button>
+            </form>
+        </div>
+
+        <div id="paymentModal" class="modal">
+            <div class="modal-content">
+                <h2 id="paymentStatusTitle"></h2>
+                <p id="paymentMessage"></p>
+                <div id="downloadSection" style="display: none;">
+                    <button onclick="downloadTicket()">Download Ticket (PDF)</button>
+                </div>
+                <button onclick="document.getElementById('paymentModal').style.display='none'">Close</button>
+            </div>
+        </div>
+
+        <a th:href="@{/}" class="back-link">← Back to Home</a>
+    </div>
+</div>
+<script th:src="@{/js/ticket-success.js}"></script>
 </body>
 </html>
