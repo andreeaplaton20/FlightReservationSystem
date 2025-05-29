@@ -21,6 +21,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.xhtmlrenderer.pdf.ITextRenderer;
+
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import java.io.ByteArrayOutputStream;
@@ -81,6 +83,16 @@ public class FlightController {
     public String buyTicket(@ModelAttribute BuyTicketRequest request, Model model, HttpSession session) {
         boolean manualSelection = request.getSelectedSeatNumbers() != null && !request.getSelectedSeatNumbers().isEmpty();
 
+        if (manualSelection) {
+            boolean reserved = flightService.reserveSeatsTemporarily(request.getFlightId(), request.getSelectedSeatNumbers());
+            if (!reserved) {
+                model.addAttribute("errorMessage", "Some selected seats are already reserved or unavailable.");
+                return "select-seats";
+            }
+
+            session.setAttribute("reservedSeats", request.getSelectedSeatNumbers());
+        }
+
         boolean success = flightService.buyTicket(
                 request.getFlightId(),
                 request.getTicketCount(),
@@ -116,34 +128,45 @@ public class FlightController {
 
     @GetMapping("/buy-ticket-auto")
     public String buyTicketAuto(@RequestParam Long flightId, @RequestParam int ticketCount, Model model, HttpSession session) {
-        boolean success = flightService.buyTicket(flightId, ticketCount, null);
+        try {
+            List<Seat> assignedSeats = flightService.autoAssignAndReserveSeats(flightId, ticketCount);
 
-        if (success) {
             Flight flight = flightService.getFlightById(flightId);
-            String assignedSeat = flightService.getAssignedSeats(flightId, ticketCount);
+            String assignedSeatNumbers = assignedSeats.stream()
+                    .map(Seat::getSeatNumber)
+                    .reduce((a, b) -> a + ", " + b)
+                    .orElse("N/A");
 
             session.setAttribute("departure", flight.getDepartureAirport().getCity());
             session.setAttribute("departureTime", flight.getDepartureTime().toString());
             session.setAttribute("destination", flight.getArrivalAirport().getCity());
             session.setAttribute("arrivalTime", flight.getArrivalTime().toString());
+            session.setAttribute("assignedSeat", assignedSeatNumbers);
 
             model.addAttribute("flight", flight);
-            model.addAttribute("assignedSeat", assignedSeat);
+            model.addAttribute("assignedSeat", assignedSeatNumbers);
             model.addAttribute("ticketCount", ticketCount);
             model.addAttribute("totalPrice", flight.getPrice().multiply(BigDecimal.valueOf(ticketCount)));
 
             return "ticket-success";
-        } else {
+        } catch (RuntimeException ex) {
             model.addAttribute("errorMessage", "Failed to buy ticket. Please check flight availability.");
             return "ticket-error";
         }
     }
 
-
     @GetMapping("/select-seats")
-    public String selectSeats(@RequestParam Long flightId, @RequestParam int count, Model model) {
+    public String selectSeats(@RequestParam Long flightId, @RequestParam int count, Model model, HttpSession session) {
         Flight flight = flightService.getFlightById(flightId);
         List<Seat> allSeats = flightService.getAllSeatsForFlight(flightId);
+
+        if (allSeats.isEmpty()) {
+            model.addAttribute("errorMessage", "No seats available for this flight.");
+            return "error";
+        }
+
+        String assignedSeat = flightService.getAssignedSeats(flightId, count);
+        session.setAttribute("assignedSeat", assignedSeat);
 
         model.addAttribute("flight", flight);
         model.addAttribute("seats", allSeats);
@@ -168,10 +191,21 @@ public class FlightController {
         String departureTime = (String) session.getAttribute("departureTime");
         String destination = (String) session.getAttribute("destination");
         String arrivalTime = (String) session.getAttribute("arrivalTime");
+        String assignedSeat = (String) session.getAttribute("assignedSeat");
         Map<String, Object> response = new HashMap<>();
         response.put("flightNumber", flightNumber);
         response.put("cardholder", cardholderName + " " + cardholderLastName);
         response.put("totalPrice", totalPrice);
+
+        String qrContent = String.format(
+                "Flight: %s\nPassenger: %s %s\nFrom: %s\nTo: %s\nDeparture: %s\nArrival: %s\nSeat: %s\nTotal: %s RON",
+                flightNumber, cardholderName, cardholderLastName, departure, destination,
+                departureTime, arrivalTime, assignedSeat, totalPrice.toPlainString()
+        );
+
+        String encodedData = URLEncoder.encode(qrContent, StandardCharsets.UTF_8);
+        String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodedData;
+        String escapedQrUrl = qrUrl.replace("&", "&amp;");
 
         if (email == null) {
             response.put("paymentSuccess", false);
@@ -182,6 +216,14 @@ public class FlightController {
         response.put("paymentSuccess", paymentSuccess);
 
         if (paymentSuccess) {
+            @SuppressWarnings("unchecked")
+            List<String> reservedSeats = (List<String>) session.getAttribute("reservedSeats");
+            Long flightId = (Long) session.getAttribute("flightId");
+
+            if (reservedSeats != null && flightId != null) {
+                flightService.finalizeReservation(flightId, reservedSeats);
+                session.removeAttribute("reservedSeats");
+            }
             try {
                 String html = loadHtmlTemplate("ticket.html", Map.of(
                         "flightNumber", flightNumber,
@@ -191,7 +233,9 @@ public class FlightController {
                         "departureTime", departureTime,
                         "arrivalTime", arrivalTime,
                         "destination", destination,
-                        "totalPrice", totalPrice.toPlainString()
+                        "assignedSeat", assignedSeat,
+                        "totalPrice", totalPrice.toPlainString(),
+                        "qrCode", escapedQrUrl
                 ));
                 byte[] pdf = generateTicketPdf(html);
 
@@ -253,17 +297,34 @@ public class FlightController {
             @RequestParam String firstName,
             @RequestParam String lastName,
             @RequestParam String departure,
+            @RequestParam String departureTime,
             @RequestParam String destination,
+            @RequestParam String arrivalTime,
+            @RequestParam String assignedSeat,
             @RequestParam BigDecimal totalPrice) {
 
+        String qrContent = String.format(
+                "Flight: %s\nPassenger: %s %s\nFrom: %s\nTo: %s\nDeparture: %s\nArrival: %s\nSeat: %s\nTotal: %s RON",
+                flightNumber, firstName, lastName, departure, destination,
+                departureTime, arrivalTime, assignedSeat, totalPrice.toPlainString()
+        );
+
+        String encodedData = URLEncoder.encode(qrContent, StandardCharsets.UTF_8);
+        String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodedData;
+        String escapedQrUrl = qrUrl.replace("&", "&amp;");
+
         try {
-            String html = loadHtmlTemplate("ticket-template.html", Map.of(
+            String html = loadHtmlTemplate("ticket.html", Map.of(
                     "flightNumber", flightNumber,
                     "firstName", firstName,
                     "lastName", lastName,
                     "departure", departure,
+                    "departureTime", departureTime,
                     "destination", destination,
-                    "totalPrice", totalPrice.toPlainString()
+                    "arrivalTime", arrivalTime,
+                    "assignedSeat", assignedSeat,
+                    "totalPrice", totalPrice.toPlainString(),
+                    "qrCode", escapedQrUrl
             ));
             byte[] pdf = generateTicketPdf(html);
             ByteArrayResource resource = new ByteArrayResource(pdf);

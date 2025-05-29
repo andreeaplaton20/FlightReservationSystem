@@ -22,4 +22,7 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     default List<Seat> findTopNByFlightAndReservedFalse(Flight flight, int n) {
         return findTopNByFlightAndReservedFalse(flight, PageRequest.of(0, n));
     }
+
+    @Query("SELECT s FROM Seat s WHERE s.flight = :flight AND s.reserved = false AND (s.reservedUntil IS NULL OR s.reservedUntil < CURRENT_TIMESTAMP)")
+    List<Seat> findAvailableSeats(@Param("flight") Flight flight);
 }

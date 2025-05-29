@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Flight Ticket</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f0f4f8;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ticket {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            padding: 2rem 2.5rem;
+            max-width: 600px;
+            width: 100%;
+            border-left: 8px solid #ec2828;
+            position: relative;
+        }
+
+        .ticket::before,
+        .ticket::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #f0f4f8;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .ticket::before {
+            left: -10px;
+        }
+
+        .ticket::after {
+            right: -10px;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            color: #ec2828;
+            font-size: 28px;
+            margin-bottom: 1.5rem;
+        }
+
+        .ticket-info p {
+            margin: 0.5rem 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .ticket-info p strong {
+            color: #000;
+        }
+
+        .ticket-info p.footer {
+            margin-top: 1rem;
+            font-style: italic;
+            text-align: center;
+            color: #ec2828;
+        }
+
+        .qr-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+        }
+
+        .qr-section p {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+            flex: 1;
+        }
+
+        .qr-section img {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin-left: 1rem;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .ticket {
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="ticket">
+    <h1>Flight Ticket</h1>
+    <div class="ticket-info">
+        <p><strong>Flight Number:</strong> {{flightNumber}}</p>
+        <p><strong>Passenger:</strong> {{firstName}} {{lastName}}</p>
+        <p><strong>From:</strong> {{departure}} | <strong>To:</strong> {{destination}}</p>
+        <p><strong>Departure:</strong> {{departureTime}} | <strong>Arrival:</strong> {{arrivalTime}}</p>
+        <p><strong>Assigned Seat:</strong> {{assignedSeat}}</p>
+        <p><strong>Total Price:</strong> {{totalPrice}} RON</p>
+        <div class="qr-section">
+            <p><strong>Scan QR for Boarding Info:</strong></p>
+            <img src="{{qrCode}}" alt="QR Code" width="150" height="150"/>
+        </div>
+        <p class="footer">Thank you for choosing us!</p>
+        <p class="footer">- LecFlight -</p>
+    </div>
+</div>
+</body>
+</html>

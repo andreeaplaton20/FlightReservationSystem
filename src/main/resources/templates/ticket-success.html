@@ -20,12 +20,15 @@
                 <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
                 <p><strong>From:</strong> <span id="departureCity" th:text="${flight.departureAirport.city}"></span> |
                     <strong>To:</strong> <span id="destinationCity" th:text="${flight.arrivalAirport.city}"></span></p>
-                <p><strong>Departure:</strong> <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
-                <p><strong>Arrival:</strong> <span th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
-                <p><strong>Assigned Seat:</strong> <span th:text="${assignedSeat}"></span></p>
+                <p><strong>Departure:</strong> <span id="departureTime" th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p><strong>Arrival:</strong> <span id="arrivalTime" th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p><strong>Assigned Seat:</strong> <span id="assignedSeat" th:text="${assignedSeat}"></span></p>
                 <p><strong>Price:</strong> <span th:text="${totalPrice}"></span> RON</p>
             </div>
 
+            <div id="countdownTimer" style="font-weight: bold; color: red; margin-bottom: 15px;">
+                Time left to complete payment: <span id="timer">15:00</span>
+            </div>
             <form id="paymentForm" class="payment-form">
                 <h3>Payment</h3>
                 <label>
@@ -63,7 +66,7 @@
                 <div id="downloadSection" style="display: none;">
                     <button onclick="downloadTicket()">Download Ticket (PDF)</button>
                 </div>
-                <button onclick="document.getElementById('paymentModal').style.display='none'">Close</button>
+                <button onclick="closeModalAndRedirect()">Close</button>
             </div>
         </div>
 

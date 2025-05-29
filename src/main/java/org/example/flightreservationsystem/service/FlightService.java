@@ -5,9 +5,12 @@ import org.example.flightreservationsystem.dto.AddFlightRequest;
 import org.example.flightreservationsystem.dto.UpdateFlightRequest;
 import org.example.flightreservationsystem.model.*;
 import org.example.flightreservationsystem.repository.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -201,5 +204,75 @@ public class FlightService {
             }
         }
         seatRepository.saveAll(seats);
+    }
+
+    public boolean reserveSeatsTemporarily(Long flightId, List<String> seatNumbers) {
+        Flight flight = flightRepository.findById(flightId).orElse(null);
+        if (flight == null) return false;
+
+        List<Seat> seats = seatRepository.findByFlightAndSeatNumberIn(flight, seatNumbers).stream()
+                .filter(seat -> !seat.isReserved() && (seat.getReservedUntil() == null || seat.getReservedUntil().isBefore(LocalDateTime.now())))
+                .toList();
+
+        if (seats.size() != seatNumbers.size()) return false;
+
+        for (Seat seat : seats) {
+            seat.setReservedUntil(LocalDateTime.now().plusMinutes(15));
+        }
+
+        seatRepository.saveAll(seats);
+        return true;
+    }
+
+    public void finalizeReservation(Long flightId, List<String> seatNumbers) {
+        Flight flight = flightRepository.findById(flightId).orElse(null);
+        if (flight == null) return;
+
+        List<Seat> seats = seatRepository.findByFlightAndSeatNumberIn(flight, seatNumbers);
+        for (Seat seat : seats) {
+            seat.setReserved(true);
+            seat.setReservedUntil(null);
+        }
+
+        seatRepository.saveAll(seats);
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public void releaseExpiredSeats() {
+        List<Seat> expiredSeats = seatRepository.findAll().stream()
+                .filter(seat -> !seat.isReserved() && seat.getReservedUntil() != null && seat.getReservedUntil().isBefore(LocalDateTime.now()))
+                .toList();
+
+        for (Seat seat : expiredSeats) {
+            seat.setReservedUntil(null);
+        }
+
+        seatRepository.saveAll(expiredSeats);
+    }
+
+    public List<Seat> autoAssignAndReserveSeats(Long flightId, int ticketCount) {
+        Flight flight = flightRepository.findById(flightId)
+                .orElseThrow(() -> new RuntimeException("Flight not found"));
+        List<Seat> availableSeats = seatRepository.findByFlightAndReservedFalse(flight);
+
+        if (availableSeats.size() < ticketCount) {
+            throw new RuntimeException("Not enough available seats for this flight.");
+        }
+
+        Collections.shuffle(availableSeats);
+
+        List<Seat> assignedSeats = availableSeats.stream()
+                .limit(ticketCount)
+                .toList();
+
+        for (Seat seat : assignedSeats) {
+            seat.setReserved(true);
+        }
+        seatRepository.saveAll(assignedSeats);
+
+        flight.setAvailableSeats(flight.getAvailableSeats() - ticketCount);
+        flightRepository.save(flight);
+
+        return assignedSeats;
     }
 }
