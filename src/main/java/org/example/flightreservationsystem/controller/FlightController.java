@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +42,14 @@ public class FlightController {
 
     @GetMapping("/page")
     public String showFlightsPage(Model model, HttpSession session) {
-        List<Flight> flights = flightService.flightList();
-        model.addAttribute("flights", flights);
+        List<Flight> allFlights = flightService.flightList();
+        LocalDateTime now = LocalDateTime.now();
+        List<Flight> futureFlights = allFlights.stream()
+                .filter(f -> f.getDepartureTime().isAfter(now))
+                .toList();
+
+        model.addAttribute("flights", futureFlights);
+
         String username = (String) session.getAttribute("username");
         if (username != null) {
             model.addAttribute("username", username);
