@@ -22,6 +22,7 @@ public class FlightService {
     private final AirportRepository airportRepository;
     private final AirplaneRepository airplaneRepository;
     private final SeatRepository seatRepository;
+    private final TicketRepository ticketRepository;
 
     public List<Flight> flightList() {
         return flightRepository.findAll();
@@ -274,5 +275,23 @@ public class FlightService {
         flightRepository.save(flight);
 
         return assignedSeats;
+    }
+
+    public void saveTicket(Ticket ticket) {
+        ticketRepository.save(ticket);
+    }
+
+    public List<Ticket> getTicketsForUser(String email) {
+        return ticketRepository.findAllByEmailOrderByPurchaseTimeDesc(email);
+    }
+
+    public Flight getFlightByNumber(String flightNumber) {
+        try {
+            Integer nr = Integer.parseInt(flightNumber);
+            return flightRepository.findByFlightNumber(nr)
+                    .orElseThrow(() -> new RuntimeException("Flight not found with number: " + flightNumber));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid flight number: " + flightNumber);
+        }
     }
 }

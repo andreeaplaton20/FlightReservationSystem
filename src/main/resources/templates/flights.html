@@ -2,44 +2,99 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Book a flight - LecFlight</title>
+    <title>Profile - LecFlight</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/flights.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/profile.css}" />
 </head>
 <body>
-    <h2>Welcome, <span th:text="${username}">User</span>! Here are the available flights:</h2>
-    <div class="flight-list">
-        <div class="flight-content" th:each="flight : ${flights}">
-            <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
-            <p>From: <span th:text="${flight.departureAirport.city}"></span> |
-                To: <span th:text="${flight.arrivalAirport.city}"></span></p>
-            <p>Departure: <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
-            <p>Arrival: <span th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
-            <p>Seats: <span th:text="${flight.availableSeats}"></span></p>
-            <p>Price: <span th:text="${flight.price}"></span> RON</p>
 
-            <form th:action="@{/api/flights/buy-ticket}" method="post">
-                <input type="hidden" name="flightId" th:value="${flight.id}" />
-                <input type="number" name="ticketCount" min="1" placeholder="Number of Tickets" required />
-                <button type="button" class="button" onclick="openModal(this)">Buy Ticket</button>
-            </form>
-        </div>
+<section class="profile-section">
+    <h2>Welcome, <span th:text="${username}">User</span>!</h2>
+    <div class="profile-submenu">
+        <button class="submenu-btn active" onclick="showSection('book')">Book a Flight</button>
+        <button class="submenu-btn" onclick="showSection('tickets')">My Tickets</button>
     </div>
 
-    <form th:action="@{/}" method="get" style="margin-top: 2rem;">
-        <button type="submit" class="button">Back to Home</button>
-    </form>
+    <div id="book-section" class="profile-tab-section">
+        <h3>Available Flights</h3>
+        <div class="flight-list">
+            <div class="flight-content" th:each="flight : ${flights}">
+                <p><strong>Flight #</strong> <span th:text="${flight.flightNumber}"></span></p>
+                <p>From: <span th:text="${flight.departureAirport.city}"></span> |
+                    To: <span th:text="${flight.arrivalAirport.city}"></span></p>
+                <p>Departure: <span th:text="${#temporals.format(flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p>Arrival: <span th:text="${#temporals.format(flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                <p>Seats: <span th:text="${flight.availableSeats}"></span></p>
+                <p>Price: <span th:text="${flight.price}"></span> RON</p>
 
-    <div id="seatModal" class="modal">
-        <div class="modal-content">
-            <h3>Select Seat Option</h3>
-            <p>You can choose your seats for an extra fee, or let the system assign them automatically.</p>
-            <div class="seat-buttons">
-                <button id="manualSelectBtn" class="seat-button">Choose Seats (+25 RON per seat)</button>
-                <button id="autoSelectBtn" class="seat-button">Auto-assign Seats</button>
+                <form th:action="@{/api/flights/buy-ticket}" method="post">
+                    <input type="hidden" name="flightId" th:value="${flight.id}" />
+                    <input type="number" name="ticketCount" min="1" placeholder="Number of Tickets" required />
+                    <button type="button" class="button" onclick="openModal(this)">Buy Ticket</button>
+                </form>
             </div>
-            <button class="button" onclick="closeModal()">Close</button>
         </div>
     </div>
-    <script th:src="@{/js/BuyModal.js}"></script>
+
+    <div id="tickets-section" class="profile-tab-section" style="display:none;">
+        <h3>My Tickets</h3>
+        <div class="filters">
+            <input type="text" id="ticketSearch" placeholder="Search by destination, flight number..." onkeyup="filterTickets()" />
+            <select id="ticketFilter" onchange="filterTickets()">
+                <option value="all">All</option>
+                <option value="upcoming">Upcoming</option>
+                <option value="past">Past</option>
+            </select>
+        </div>
+        <div class="ticket-list">
+            <div class="ticket-card" th:each="ticket : ${tickets}"
+                 th:attr="data-departure=${#temporals.format(ticket.flight.departureTime, 'dd MMM yyyy, HH:mm')},
+                data-destination=${ticket.flight.arrivalAirport.city},
+                data-flightnumber=${ticket.flight.flightNumber}">
+                <div class="ticket-info">
+                    <p><strong>Flight #</strong> <span th:text="${ticket.flight.flightNumber}"></span></p>
+                    <p>From: <span th:text="${ticket.flight.departureAirport.city}"></span> |
+                        To: <span th:text="${ticket.flight.arrivalAirport.city}"></span></p>
+                    <p>Departure: <span th:text="${#temporals.format(ticket.flight.departureTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                    <p>Arrival: <span th:text="${#temporals.format(ticket.flight.arrivalTime, 'dd MMM yyyy, HH:mm')}"></span></p>
+                    <p>Seat(s): <span th:text="${ticket.seatNumbers}"></span></p>
+                    <p>Price: <span th:text="${ticket.totalPrice}"></span> RON</p>
+                    <p th:if="${ticket.flight.departureTime > T(java.time.LocalDateTime).now()}">
+                        <span class="status upcoming">Upcoming</span>
+                    </p>
+                    <p th:if="${ticket.flight.departureTime <= T(java.time.LocalDateTime).now()}">
+                        <span class="status past">Past</span>
+                    </p>
+                    <a th:href="@{/api/flights/download-ticket(
+                            flightNumber=${ticket.flight.flightNumber},
+                            firstName=${ticket.passengerFirstName},
+                            lastName=${ticket.passengerLastName},
+                            departure=${ticket.flight.departureAirport.city},
+                            departureTime=${#temporals.format(ticket.flight.departureTime, 'dd MMM yyyy, HH:mm')},
+                            destination=${ticket.flight.arrivalAirport.city},
+                            arrivalTime=${#temporals.format(ticket.flight.arrivalTime, 'dd MMM yyyy, HH:mm')},
+                            assignedSeat=${ticket.seatNumbers},
+                            totalPrice=${ticket.totalPrice}
+                        )}" class="button" target="_blank">Download Ticket</a>
+                </div>
+            </div>
+            <p th:if="${#lists.isEmpty(tickets)}" style="text-align:center;">You have no tickets yet.</p>
+        </div>
+    </div>
+    <a th:href="@{/}">Back to Home</a>
+</section>
+<div id="seatModal" class="modal">
+    <div class="modal-content">
+        <h3>Select Seat Option</h3>
+        <p>You can choose your seats for an extra fee, or let the system assign them automatically.</p>
+        <div class="seat-buttons">
+            <button id="manualSelectBtn" class="seat-button">Choose Seats (+25 RON per seat)</button>
+            <button id="autoSelectBtn" class="seat-button">Auto-assign Seats</button>
+        </div>
+        <button class="button" onclick="closeModal()">Close</button>
+    </div>
+</div>
+<script th:src="@{/js/BuyModal.js}"></script>
+<script th:src="@{/js/flights.js}"></script>
 </body>
 </html>

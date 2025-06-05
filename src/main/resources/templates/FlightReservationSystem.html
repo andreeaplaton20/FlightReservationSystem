@@ -6,29 +6,34 @@
     <title>Flight Reservation System</title>
     <link rel="stylesheet" type="text/css" th:href="@{/css/FlightReservationSystem.css}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 </head>
 <body>
 <nav>
     <div class="header">
-        <div class="logo">LecFlight</div>
+        <div class="logo"><a th:href="@{/}">LecFlight</a></div>
         <div class="name">Flight Reservation System</div>
     </div>
     <div class="menu">
-            <span class="menu-items-dropdown">Login
+        <div class="search-bar">
+            <input type="text" id="destinationSearch" placeholder="Search destinations...">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+            <span class="menu-items-dropdown" style="margin-top: 10px">Login
                 <div class="submenu">
                     <a class="aItems" th:href="@{/register}">Create Account</a>
                     <a class="aItems" th:href="@{/custom-login}">My Account</a>
-                    <a class="aItems" th:href="@{/flights}">Book Flight</a>
                 </div>
             </span>
-        <span class="menu-items"><a class="aItems" th:href="@{'#contacts'}">Contacts</a></span>
+        <span class="menu-items" style="margin-top: 10px"><a class="aItems" th:href="@{'#contacts'}">Contacts</a></span>
     </div>
 </nav>
 <main>
     <div class="content">
         <h1 th:text="${message}">Let's fly together</h1>
         <p>Choose your dream destination and enjoy a comfortable flight with us</p>
-        <a th:href="@{'#book'}" class="cta-button">Book Here Now</a>
+        <a th:href="@{/register}" class="cta-button">Book Here Now</a>
     </div>
 
     <div id="destinations" class="popul-destinations">
@@ -89,19 +94,21 @@
         <h2>Contacts</h2>
         <p>If you have any questions or need assistance, feel free to reach out!</p>
         <p>Contact us through the form below or connect with us on social media.</p>
-        <form action="#" method="post">
-            <label for="name">Name:</label><br>
-            <input type="text" id="name" name="name" placeholder="Your name"><br>
-            <label for="email">Email:</label><br>
-            <input type="email" id="email" name="email" placeholder="Your email"><br>
-            <input type="submit" value="Submit">
+        <form action="#" method="post" class="contacts-form">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Your email" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Message:</label>
+                <textarea id="message" name="message" placeholder="Write your message here and we will come back to you!" rows="4" required></textarea>
+            </div>
+            <input type="submit" value="Submit" class="submit-btn">
         </form>
-        <p>Follow us on social media for the latest updates and tips!</p>
-        <div class="social-links">
-            <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
-            <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-            <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
-        </div>
     </div>
 </main>
 <footer>

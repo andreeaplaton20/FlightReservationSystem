@@ -6,13 +6,16 @@ import jakarta.servlet.http.HttpSession;
 import lombok.*;
 import org.example.flightreservationsystem.dto.AddFlightRequest;
 import org.example.flightreservationsystem.dto.BuyTicketRequest;
+import org.example.flightreservationsystem.dto.FlightSearchRequest;
 import org.example.flightreservationsystem.dto.UpdateFlightRequest;
 import org.example.flightreservationsystem.model.Flight;
 import org.example.flightreservationsystem.model.Seat;
+import org.example.flightreservationsystem.model.Ticket;
 import org.example.flightreservationsystem.service.FlightService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -42,6 +45,14 @@ public class FlightController {
 
     @GetMapping("/page")
     public String showFlightsPage(Model model, HttpSession session) {
+        String email = (String) session.getAttribute("email");
+        if (email == null) {
+            return "redirect:/custom-login";
+        }
+
+        List<Ticket> tickets = flightService.getTicketsForUser(email);
+        model.addAttribute("tickets", tickets);
+
         List<Flight> allFlights = flightService.flightList();
         LocalDateTime now = LocalDateTime.now();
         List<Flight> futureFlights = allFlights.stream()
@@ -55,6 +66,21 @@ public class FlightController {
             model.addAttribute("username", username);
         }
         return "flights";
+    }
+
+    @GetMapping("/search-destinations")
+    @ResponseBody
+    public List<FlightSearchRequest> searchDestinations(@RequestParam String query) {
+        return flightService.flightList().stream()
+                .filter(f -> f.getArrivalAirport().getCity() != null &&
+                        f.getArrivalAirport().getCity().toLowerCase().contains(query.toLowerCase()))
+                .map(f -> new FlightSearchRequest(
+                        f.getId(),
+                        f.getArrivalAirport().getCity(),
+                        f.getArrivalAirport().getName(),
+                        f.getDepartureTime().toString()
+                ))
+                .toList();
     }
 
     @GetMapping("/admin")
@@ -247,6 +273,19 @@ public class FlightController {
                 byte[] pdf = generateTicketPdf(html);
 
                 sendTicketEmail(email, pdf, "ticket.pdf");
+
+                Ticket ticket = Ticket.builder()
+                        .passengerFirstName(cardholderName)
+                        .passengerLastName(cardholderLastName)
+                        .email(email)
+                        .flight(flightService.getFlightByNumber(flightNumber))
+                        .seatNumbers(assignedSeat)
+                        .ticketsCount(assignedSeat.split(",").length)
+                        .totalPrice(totalPrice)
+                        .purchaseTime(LocalDateTime.now())
+                        .build();
+                flightService.saveTicket(ticket);
+
             } catch (Exception e) {
                 e.printStackTrace();
                 response.put("paymentSuccess", false);
@@ -364,5 +403,38 @@ public class FlightController {
     public String updateFlight(@ModelAttribute UpdateFlightRequest request) {
         flightService.updateFlight(request);
         return "redirect:/api/flights/admin";
+    }
+
+    @PostMapping("/contact/send")
+    @ResponseBody
+    public ResponseEntity<String> sendContactMessage(
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam String message) {
+        try {
+            String subject = "[LecFlight] New Contact Message from " + name;
+            String content = "You received a new message from the contact form:\n\n"
+                    + "Name: " + name + "\n"
+                    + "Email: " + email + "\n"
+                    + "Message:\n" + message + "\n";
+
+            String adminEmail = "platonandreea3@gmail.com";
+            sendContactEmail(adminEmail, subject, content);
+
+            return ResponseEntity.ok("Your message was sent successfully! We'll get back to you soon.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("There was an error sending your message. Please try again later.");
+        }
+    }
+
+    public void sendContactEmail(String to, String subject, String content) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, false);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(content, false);
+        mailSender.send(message);
     }
 }
